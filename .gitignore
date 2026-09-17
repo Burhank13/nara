@@ -9,3 +9,5 @@ venv/
 *.egg-info/
 .pytest_cache/
 postgres_data/
+test-results/
+playwright-report/

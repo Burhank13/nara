@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
+  // min-w-0: as a grid or flex item a card defaults to min-width:auto, so its min-content — a long
+  // email, say — widens the whole track and the page scrolls sideways on a phone.
   return (
-    <div className={`rounded-2xl border border-line bg-surface ${className}`}>{children}</div>
+    <div className={`min-w-0 rounded-2xl border border-line bg-surface ${className}`}>{children}</div>
   )
 }
 

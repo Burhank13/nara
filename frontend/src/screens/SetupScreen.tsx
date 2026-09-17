@@ -42,7 +42,8 @@ export function SetupScreen() {
 
       <ol className="grid gap-2">
         {data.steps.map((entry, position) => (
-          <li key={entry.key}>
+          // min-w-0 so the step's description cannot widen the list beyond a phone screen.
+          <li key={entry.key} className="min-w-0">
             <button
               onClick={() => setStep(entry.key)}
               aria-current={entry.key === current ? 'step' : undefined}
