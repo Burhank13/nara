@@ -1,3 +1,8 @@
+# Day to day you want just Postgres here, with uvicorn and Vite running on the host:
+#   docker compose up -d
+# To run the production image exactly as it deploys (API plus built frontend on one origin):
+#   docker compose --profile prod up --build
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -15,35 +20,22 @@ services:
       timeout: 5s
       retries: 5
 
-  backend:
-    build: ./backend
+  app:
+    profiles: ["prod"]
+    build: .
     ports:
-      - "8000:8000"
+      - "8080:8000"
     environment:
-      ENVIRONMENT: development
+      ENVIRONMENT: production
       DATABASE_URL: postgresql://nara:nara@postgres:5432/nara
-      JWT_SECRET: development-only-secret-do-not-ship-this
-      CORS_ORIGINS: http://localhost:5173
-      APP_BASE_URL: http://localhost:5173
+      # Replace before deploying anywhere real:
+      # python -c "import secrets;print(secrets.token_urlsafe(48))"
+      JWT_SECRET: local-production-image-secret-at-least-32-chars
+      CORS_ORIGINS: http://localhost:8080
+      APP_BASE_URL: http://localhost:8080
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./backend:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "5173:5173"
-    environment:
-      VITE_API_URL: http://localhost:8000
-    depends_on:
-      - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    command: npm run dev -- --host 0.0.0.0
 
 volumes:
   postgres_data:

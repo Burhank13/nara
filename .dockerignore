@@ -1,0 +1,14 @@
+**/node_modules
+**/dist
+**/.venv
+**/venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.ruff_cache
+**/*.egg-info
+.git
+.env
+.env.local
+postgres_data
+.cursor
