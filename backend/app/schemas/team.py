@@ -24,6 +24,7 @@ class MemberResponse(BaseModel):
     id: uuid.UUID
     email: EmailStr
     full_name: str
+    payroll_code: str | None
     role: UserRole
     status: UserStatus
     invited_at: datetime | None

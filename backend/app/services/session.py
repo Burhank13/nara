@@ -9,7 +9,8 @@ from app.schemas.auth import BusinessResponse, TokenResponse, UserResponse
 from app.services.security import create_access_token, create_refresh_token
 
 REFRESH_COOKIE = "nara_refresh"
-REFRESH_COOKIE_PATH = "/auth"
+# Scoped to the auth endpoints so the cookie is not attached to every other API call.
+REFRESH_COOKIE_PATH = "/api/auth"
 
 
 def set_refresh_cookie(response: Response, user: User) -> None:

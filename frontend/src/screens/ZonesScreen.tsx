@@ -161,7 +161,8 @@ export function ZonesScreen() {
           {create.isPending ? 'Saving…' : 'Save zone'}
         </Button>
         <p className="text-xs text-muted">
-          Searching an address and dragging a pin on a map arrives with the setup wizard.
+          The most accurate pin is your own: stand in the shop and tap “Use my current location”.
+          Address search and a draggable map pin are still to come.
         </p>
       </Card>
     </div>

@@ -1,3 +1,9 @@
+/**
+ * Every API path is prefixed here rather than at the call sites. The API lives under /api so it
+ * can never shadow a page route — /overview and /team are both an endpoint and a screen.
+ */
+const API_PREFIX = '/api'
+
 export class ApiError extends Error {
   readonly status: number
   readonly code: string
@@ -15,6 +21,12 @@ export class ApiError extends Error {
 }
 
 let accessToken: string | null = null
+let onSessionLost: (() => void) | null = null
+
+/** Lets the auth layer clear its state when the server has revoked this session. */
+export function setSessionLostHandler(handler: (() => void) | null): void {
+  onSessionLost = handler
+}
 
 export function setAccessToken(token: string | null): void {
   accessToken = token
@@ -51,7 +63,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   const { method = 'GET', body, skipRefresh = false } = options
 
   const send = (): Promise<Response> =>
-    fetch(path, {
+    fetch(API_PREFIX + path, {
       method,
       headers: {
         ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
@@ -64,14 +76,52 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   let response = await send()
 
   // An expired access token is renewed once from the refresh cookie, then the call is retried.
+  // If the renewal is refused too, the session is genuinely over — signed out, or revoked.
   if (response.status === 401 && !skipRefresh && accessToken) {
     const renewed = await renewSession()
-    if (renewed) response = await send()
+    if (renewed) {
+      response = await send()
+    } else {
+      onSessionLost?.()
+    }
   }
 
   if (!response.ok) throw await parseError(response)
   if (response.status === 204) return undefined as T
   return (await response.json()) as T
+}
+
+function filenameFrom(disposition: string | null): string | null {
+  const match = disposition?.match(/filename="?([^"]+)"?/)
+  return match ? match[1] : null
+}
+
+/**
+ * Save a file the API returns. The access token is held in memory, so a plain download link
+ * would arrive unauthenticated: the file is fetched, then handed to the browser as a blob.
+ */
+export async function download(path: string, fallbackName: string): Promise<void> {
+  const send = (): Promise<Response> =>
+    fetch(API_PREFIX + path, {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      credentials: 'same-origin',
+    })
+
+  let response = await send()
+  if (response.status === 401 && accessToken) {
+    const renewed = await renewSession()
+    if (renewed) response = await send()
+  }
+  if (!response.ok) throw await parseError(response)
+
+  const url = URL.createObjectURL(await response.blob())
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filenameFrom(response.headers.get('Content-Disposition')) ?? fallbackName
+  document.body.append(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
 }
 
 export type Session = {
@@ -86,9 +136,11 @@ export type Session = {
   business: {
     id: string
     name: string
+    abn: string | null
     timezone: string
-    status: string
+    status: 'trialing' | 'active' | 'past_due' | 'read_only' | 'suspended' | 'cancelled'
     trial_ends_at: string | null
+    grace_ends_at: string | null
     seat_limit: number
   }
 }

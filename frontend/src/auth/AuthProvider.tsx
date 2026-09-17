@@ -1,11 +1,27 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 
-import { renewSession, request, setAccessToken, type Session } from '../lib/api'
+import {
+  renewSession,
+  request,
+  setAccessToken,
+  setSessionLostHandler,
+  type Session,
+} from '../lib/api'
 import { AuthContext } from './context'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // A session revoked on the server (signed out elsewhere) drops straight back to the sign-in screen
+  // rather than leaving a signed-in shell whose every request fails.
+  useEffect(() => {
+    setSessionLostHandler(() => {
+      setAccessToken(null)
+      setSession(null)
+    })
+    return () => setSessionLostHandler(null)
+  }, [])
 
   // The access token lives in memory only; the refresh cookie is what survives a reload.
   useEffect(() => {

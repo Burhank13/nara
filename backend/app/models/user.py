@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -37,6 +37,10 @@ user_status_enum = Enum(
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = (
+        # Two people sharing a payroll code would merge into one line on the accountant's import.
+        UniqueConstraint("business_id", "payroll_code", name="uq_users_business_id_payroll_code"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     business_id: Mapped[uuid.UUID] = mapped_column(
@@ -46,6 +50,8 @@ class User(Base):
     # Null until an invited user accepts and picks a password.
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    # How this person is identified in the payroll system the hours are exported to.
+    payroll_code: Mapped[str | None] = mapped_column(String(50), nullable=True)
     role: Mapped[UserRole] = mapped_column(user_role_enum, nullable=False)
     status: Mapped[UserStatus] = mapped_column(user_status_enum, nullable=False, default=UserStatus.invited)
 
@@ -57,6 +63,11 @@ class User(Base):
     invite_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True)
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # Bumped on sign-out, which is what makes an already-issued token stop working.
+    token_version: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0", default=0)
+    failed_login_count: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0", default=0)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()

@@ -21,7 +21,7 @@ def owner_with_team(client: TestClient) -> dict[str, dict]:
 def test_the_owner_sees_every_member_and_the_seat_count(client: TestClient) -> None:
     team = owner_with_team(client)
 
-    response = client.get("/team", headers=auth(team["owner"]["access_token"]))
+    response = client.get("/api/team", headers=auth(team["owner"]["access_token"]))
 
     assert response.status_code == 200
     body = response.json()
@@ -36,7 +36,7 @@ def test_the_owner_sees_every_member_and_the_seat_count(client: TestClient) -> N
 def test_a_manager_can_read_the_team(client: TestClient) -> None:
     team = owner_with_team(client)
 
-    response = client.get("/team", headers=auth(team["manager"]["access_token"]))
+    response = client.get("/api/team", headers=auth(team["manager"]["access_token"]))
 
     assert response.status_code == 200
     assert len(response.json()["members"]) == 3
@@ -47,12 +47,12 @@ def test_a_manager_cannot_invite_or_archive(client: TestClient) -> None:
     manager_token = team["manager"]["access_token"]
 
     invited = client.post(
-        "/team/invites",
+        "/api/team/invites",
         json={"email": "new@sparklewash.com", "full_name": "New Starter", "role": "employee"},
         headers=auth(manager_token),
     )
     archived = client.post(
-        f"/team/members/{team['employee']['user']['id']}/archive", headers=auth(manager_token)
+        f"/api/team/members/{team['employee']['user']['id']}/archive", headers=auth(manager_token)
     )
 
     assert invited.status_code == 403
@@ -63,7 +63,7 @@ def test_a_manager_cannot_invite_or_archive(client: TestClient) -> None:
 def test_a_manager_cannot_read_the_seat_meter(client: TestClient) -> None:
     team = owner_with_team(client)
 
-    response = client.get("/team/seats", headers=auth(team["manager"]["access_token"]))
+    response = client.get("/api/team/seats", headers=auth(team["manager"]["access_token"]))
 
     assert response.status_code == 403
 
@@ -71,7 +71,7 @@ def test_a_manager_cannot_read_the_seat_meter(client: TestClient) -> None:
 def test_an_employee_cannot_read_the_team(client: TestClient) -> None:
     team = owner_with_team(client)
 
-    response = client.get("/team", headers=auth(team["employee"]["access_token"]))
+    response = client.get("/api/team", headers=auth(team["employee"]["access_token"]))
 
     assert response.status_code == 403
 
@@ -83,12 +83,12 @@ def test_one_business_never_sees_another(client: TestClient) -> None:
     )
     second = signup(client, email="sam@shinewash.com", business_name="Shine Wash", full_name="Sam Owner")
 
-    listed = client.get("/team", headers=auth(second["access_token"]))
+    listed = client.get("/api/team", headers=auth(second["access_token"]))
     assert [member["email"] for member in listed.json()["members"]] == ["sam@shinewash.com"]
     assert listed.json()["seats"]["used"] == 0
 
     poached = client.post(
-        f"/team/members/{first_employee['user']['id']}/archive", headers=auth(second["access_token"])
+        f"/api/team/members/{first_employee['user']['id']}/archive", headers=auth(second["access_token"])
     )
     assert poached.status_code == 404
     assert poached.json()["detail"]["code"] == "member_not_found"
@@ -100,7 +100,7 @@ def test_an_invite_email_is_taken_even_in_another_business(client: TestClient) -
     second = signup(client, email="sam@shinewash.com", business_name="Shine Wash", full_name="Sam Owner")
 
     response = client.post(
-        "/team/invites",
+        "/api/team/invites",
         json={"email": "eli@sparklewash.com", "full_name": "Eli Employee", "role": "employee"},
         headers=auth(second["access_token"]),
     )
@@ -113,7 +113,7 @@ def test_an_owner_cannot_be_invited_as_a_role_they_choose(client: TestClient) ->
     owner = signup(client)
 
     response = client.post(
-        "/team/invites",
+        "/api/team/invites",
         json={"email": "second@sparklewash.com", "full_name": "Second Owner", "role": "owner"},
         headers=auth(owner["access_token"]),
     )

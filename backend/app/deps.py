@@ -35,6 +35,8 @@ def get_current_user(
     user = get_user_by_id(db, user_id)
     if user is None:
         raise api_error(401, "invalid_token", "Sign in to continue.")
+    if payload.get("tv") != user.token_version:
+        raise api_error(401, "session_revoked", "You've been signed out. Sign in again.")
     if user.status != UserStatus.active:
         raise api_error(403, "account_inactive", "This account is no longer active.")
     return user

@@ -15,7 +15,7 @@ def signup(
     **extra: Any,
 ) -> dict[str, Any]:
     response = client.post(
-        "/auth/signup",
+        "/api/auth/signup",
         json={
             "email": email,
             "business_name": business_name,
@@ -41,7 +41,7 @@ def invite(
     role: str = "employee",
 ) -> dict[str, Any]:
     response = client.post(
-        "/team/invites",
+        "/api/team/invites",
         json={"email": email, "full_name": full_name, "role": role},
         headers=auth(owner_token),
     )
@@ -55,7 +55,7 @@ def invite_token(invite_body: dict[str, Any]) -> str:
 
 def accept(client: TestClient, raw_token: str, *, full_name: str = "Eli Employee") -> dict[str, Any]:
     response = client.post(
-        f"/invites/{raw_token}/accept",
+        f"/api/invites/{raw_token}/accept",
         json={"full_name": full_name, "password": PASSWORD},
     )
     assert response.status_code == 200, response.text
@@ -85,7 +85,7 @@ def create_zone(
     radius_m: int = 150,
 ) -> dict[str, Any]:
     response = client.post(
-        "/locations",
+        "/api/locations",
         json={"name": name, "latitude": latitude, "longitude": longitude, "radius_m": radius_m},
         headers=auth(owner_token),
     )

@@ -38,6 +38,8 @@ def _create_token(user: User, token_type: str, lifetime: timedelta) -> str:
         "bid": str(user.business_id),
         "role": user.role.value,
         "typ": token_type,
+        # Signing the session generation in is what lets a sign-out invalidate a stolen token.
+        "tv": user.token_version,
         "iat": issued_at,
         "exp": issued_at + lifetime,
     }

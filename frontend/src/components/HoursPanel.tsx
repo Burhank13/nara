@@ -3,13 +3,11 @@ import { useState } from 'react'
 
 import { request } from '../lib/api'
 import { clockTime, dayAndDate, hours, rangeLabel } from '../lib/format'
+import type { Period } from '../lib/periods'
 import type { Shift, ShiftPeriod } from '../lib/types'
 import { Card } from './Card'
-
-const PERIODS = ['week', 'fortnight', 'month'] as const
-type Period = (typeof PERIODS)[number]
-
-const LABELS: Record<Period, string> = { week: 'Week', fortnight: 'Fortnight', month: 'Month' }
+import { EditedNote } from './EditedNote'
+import { PeriodTabs } from './PeriodTabs'
 
 export function HoursPanel({ timeZone, heading = 'My hours' }: { timeZone: string; heading?: string }) {
   const [period, setPeriod] = useState<Period>('week')
@@ -22,22 +20,7 @@ export function HoursPanel({ timeZone, heading = 'My hours' }: { timeZone: strin
     <section className="grid gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-2xl font-bold">{heading}</h2>
-        <div className="flex rounded-xl bg-line-soft p-1" role="tablist" aria-label="Period">
-          {PERIODS.map((option) => (
-            <button
-              key={option}
-              role="tab"
-              aria-selected={period === option}
-              onClick={() => setPeriod(option)}
-              className={[
-                'min-h-9 rounded-lg px-3 text-sm font-medium transition-colors',
-                period === option ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink',
-              ].join(' ')}
-            >
-              {LABELS[option]}
-            </button>
-          ))}
-        </div>
+        <PeriodTabs value={period} onChange={setPeriod} />
       </div>
 
       <Card className="p-5">
@@ -66,6 +49,7 @@ export function HoursPanel({ timeZone, heading = 'My hours' }: { timeZone: strin
                 <div>
                   <p className="font-semibold">{dayAndDate(shift.started_at, timeZone)}</p>
                   <p className="tabular mt-0.5 text-sm text-muted">{times(shift, timeZone)}</p>
+                  <EditedNote edits={shift.edits} />
                 </div>
                 <span className="tabular text-lg font-semibold">{hoursCell(shift)}</span>
               </li>
@@ -84,7 +68,10 @@ export function HoursPanel({ timeZone, heading = 'My hours' }: { timeZone: strin
             <tbody>
               {data.shifts.map((shift) => (
                 <tr key={shift.id} className="border-b border-line-soft last:border-0">
-                  <td className="px-4 py-3 font-medium">{dayAndDate(shift.started_at, timeZone)}</td>
+                  <td className="px-4 py-3 font-medium">
+                    {dayAndDate(shift.started_at, timeZone)}
+                    <EditedNote edits={shift.edits} />
+                  </td>
                   <td className="tabular px-4 py-3">{clockTime(shift.started_at, timeZone)}</td>
                   <td className="tabular px-4 py-3">
                     {shift.ended_at ? clockTime(shift.ended_at, timeZone) : '—'}

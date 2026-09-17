@@ -1,8 +1,11 @@
+import uuid
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.deps import get_current_user
+from app.deps import get_current_user, require_owner, require_writable_business
+from app.models.business import Business
 from app.models.user import User
 from app.schemas.shift import (
     CurrentShiftResponse,
@@ -11,6 +14,7 @@ from app.schemas.shift import (
     ShiftResponse,
     StartShiftRequest,
 )
+from app.schemas.timesheet import EditShiftRequest, TimesheetShift
 from app.services.shifts import (
     Period,
     end_shift,
@@ -19,6 +23,7 @@ from app.services.shifts import (
     shifts_in_period,
     start_shift,
 )
+from app.services.timesheets import edit_shift, get_shift_for_business
 
 router = APIRouter(prefix="/shifts", tags=["shifts"])
 
@@ -82,3 +87,25 @@ def my_shifts(
         shift_count=len(responses),
         shifts=responses,
     )
+
+
+@router.patch("/{shift_id}", response_model=TimesheetShift)
+def edit(
+    shift_id: uuid.UUID,
+    payload: EditShiftRequest,
+    current_user: User = Depends(require_owner),
+    business: Business = Depends(require_writable_business),
+    db: Session = Depends(get_db),
+) -> TimesheetShift:
+    """Correcting someone's hours is owner-only and always leaves a reason in the audit log."""
+    shift = get_shift_for_business(db, business.id, shift_id)
+    edited = edit_shift(
+        db,
+        shift,
+        current_user,
+        reason=payload.reason,
+        started_at=payload.started_at,
+        ended_at=payload.ended_at,
+        timezone=business.timezone,
+    )
+    return TimesheetShift.of(edited)

@@ -4,13 +4,14 @@ from enum import StrEnum
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.config import settings
 from app.errors import api_error
 from app.models.business import Business
 from app.models.location import Location
 from app.models.shift import Shift, ShiftStatus
+from app.models.shift_edit import ShiftEdit
 from app.models.user import User
 from app.services.billing import is_writable
 from app.services.geofence import check_zones, distance_m
@@ -160,6 +161,10 @@ def shifts_in_period(db: Session, user_id: uuid.UUID, start: datetime, end: date
     return list(
         db.execute(
             select(Shift)
+            .options(
+                joinedload(Shift.location),
+                selectinload(Shift.edits).joinedload(ShiftEdit.edited_by),
+            )
             .where(Shift.user_id == user_id, Shift.started_at >= start, Shift.started_at < end)
             .order_by(Shift.started_at.desc())
         )

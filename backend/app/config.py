@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     access_token_minutes: int = 60
     refresh_token_days: int = 30
 
+    # When this holds a built frontend, the API serves it too and everything is one origin.
+    static_dir: str = "static"
     cors_origins: str = "http://localhost:5173"
     app_base_url: str = "http://localhost:5173"
     # "lax" suits a same-origin deployment (or the Vite dev proxy); use "none" for a cross-site API.
@@ -23,6 +25,15 @@ class Settings(BaseSettings):
     trial_days: int = 14
     trial_seat_limit: int = 10
     invite_expiry_days: int = 7
+    # How long a failed payment keeps working before the account suspends.
+    past_due_grace_days: int = 7
+
+    # Payroll is usually paid in quarter hours; set to 0 to export exact times instead.
+    payroll_rounding_minutes: int = 15
+
+    # Online brute-force protection. Per-IP limits belong at the proxy, not in the app process.
+    max_failed_logins: int = 8
+    lockout_minutes: int = 15
 
     # A laptop locating itself by Wi-Fi is often hundreds of metres out, so weak fixes can't start a shift.
     max_gps_accuracy_m: int = 100

@@ -11,6 +11,7 @@ from app.database import Base
 
 if TYPE_CHECKING:
     from app.models.location import Location
+    from app.models.shift_edit import ShiftEdit
     from app.models.user import User
 
 
@@ -74,3 +75,6 @@ class Shift(Base):
 
     user: Mapped["User"] = relationship()
     location: Mapped["Location | None"] = relationship()
+    edits: Mapped[list["ShiftEdit"]] = relationship(
+        back_populates="shift", order_by="ShiftEdit.created_at", cascade="all, delete-orphan"
+    )

@@ -16,6 +16,8 @@ if TYPE_CHECKING:
 class BusinessStatus(enum.StrEnum):
     trialing = "trialing"
     active = "active"
+    # A failed payment, not a closed account: the shop keeps working through the grace period.
+    past_due = "past_due"
     read_only = "read_only"
     suspended = "suspended"
     cancelled = "cancelled"
@@ -48,6 +50,7 @@ class Business(Base):
     seat_limit: Mapped[int] = mapped_column(Integer, nullable=False, default=10)
     seat_limit_override: Mapped[int | None] = mapped_column(Integer, nullable=True)
     trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    past_due_since: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     stripe_customer_id: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True)
     stripe_subscription_id: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True)
     created_at: Mapped[datetime] = mapped_column(

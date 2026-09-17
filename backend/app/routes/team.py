@@ -10,6 +10,7 @@ from app.deps import require_owner, require_owner_or_manager, require_writable_b
 from app.errors import api_error
 from app.models.business import Business
 from app.models.user import User, UserRole, UserStatus
+from app.schemas.payroll import UpdateMemberRequest
 from app.schemas.team import (
     InviteRequest,
     InviteResponse,
@@ -96,6 +97,34 @@ def create_invite(
 
     raw_token = issue_invite(member, current_user)
     return _invite_response(db, business, member, raw_token)
+
+
+@router.patch("/members/{user_id}", response_model=MemberResponse)
+def update_member(
+    user_id: uuid.UUID,
+    payload: UpdateMemberRequest,
+    current_user: User = Depends(require_owner),
+    db: Session = Depends(get_db),
+) -> MemberResponse:
+    """Sets the code payroll knows this person by, so exported hours land on the right employee."""
+    member = _get_member(db, current_user.business_id, user_id)
+    code = payload.payroll_code
+
+    if code is not None:
+        clash = db.execute(
+            select(User).where(
+                User.business_id == current_user.business_id,
+                User.payroll_code == code,
+                User.id != member.id,
+            )
+        ).scalar_one_or_none()
+        if clash is not None:
+            raise api_error(409, "payroll_code_taken", f"{clash.full_name} already uses that payroll code.")
+
+    member.payroll_code = code
+    db.flush()
+    db.refresh(member)
+    return MemberResponse.model_validate(member)
 
 
 @router.post("/members/{user_id}/resend", response_model=InviteResponse)

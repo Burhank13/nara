@@ -7,7 +7,7 @@ def test_the_owner_creates_a_zone_with_the_default_radius(client: TestClient) ->
     owner = signup(client)
 
     response = client.post(
-        "/locations",
+        "/api/locations",
         json={"name": "Harbour St Car Wash", "latitude": SHOP_LAT, "longitude": SHOP_LNG},
         headers=auth(owner["access_token"]),
     )
@@ -20,12 +20,12 @@ def test_a_radius_outside_the_allowed_range_is_refused(client: TestClient) -> No
     owner = signup(client)
 
     too_tight = client.post(
-        "/locations",
+        "/api/locations",
         json={"name": "Tight", "latitude": SHOP_LAT, "longitude": SHOP_LNG, "radius_m": 20},
         headers=auth(owner["access_token"]),
     )
     too_wide = client.post(
-        "/locations",
+        "/api/locations",
         json={"name": "Wide", "latitude": SHOP_LAT, "longitude": SHOP_LNG, "radius_m": 900},
         headers=auth(owner["access_token"]),
     )
@@ -46,9 +46,9 @@ def test_staff_can_read_the_zones_but_not_change_them(client: TestClient) -> Non
     )
     employee_token = employee["access_token"]
 
-    listed = client.get("/locations", headers=auth(employee_token))
+    listed = client.get("/api/locations", headers=auth(employee_token))
     created = client.post(
-        "/locations",
+        "/api/locations",
         json={"name": "Sneaky", "latitude": SHOP_LAT, "longitude": SHOP_LNG},
         headers=auth(employee_token),
     )
@@ -63,7 +63,7 @@ def test_a_zone_can_be_moved_and_resized(client: TestClient) -> None:
     zone = create_zone(client, owner["access_token"])
 
     response = client.patch(
-        f"/locations/{zone['id']}",
+        f"/api/locations/{zone['id']}",
         json={"radius_m": 250, "name": "Harbour St (rear gate)"},
         headers=auth(owner["access_token"]),
     )
@@ -77,8 +77,10 @@ def test_a_deleted_zone_disappears_from_the_list(client: TestClient) -> None:
     owner = signup(client)
     zone = create_zone(client, owner["access_token"])
 
-    assert client.delete(f"/locations/{zone['id']}", headers=auth(owner["access_token"])).status_code == 204
-    assert client.get("/locations", headers=auth(owner["access_token"])).json() == []
+    assert (
+        client.delete(f"/api/locations/{zone['id']}", headers=auth(owner["access_token"])).status_code == 204
+    )
+    assert client.get("/api/locations", headers=auth(owner["access_token"])).json() == []
 
 
 def test_one_business_never_sees_another_business_zones(client: TestClient) -> None:
@@ -86,9 +88,9 @@ def test_one_business_never_sees_another_business_zones(client: TestClient) -> N
     zone = create_zone(client, first["access_token"])
     second = signup(client, email="sam@shinewash.com", business_name="Shine Wash", full_name="Sam Owner")
 
-    listed = client.get("/locations", headers=auth(second["access_token"]))
+    listed = client.get("/api/locations", headers=auth(second["access_token"]))
     patched = client.patch(
-        f"/locations/{zone['id']}", json={"radius_m": 300}, headers=auth(second["access_token"])
+        f"/api/locations/{zone['id']}", json={"radius_m": 300}, headers=auth(second["access_token"])
     )
 
     assert listed.json() == []

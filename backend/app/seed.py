@@ -20,8 +20,21 @@ INVITED_EMAIL = "newstarter@carwash.demo"
 def seed() -> None:
     db = SessionLocal()
     try:
-        if get_user_by_email(db, OWNER_EMAIL):
-            print("Demo business already seeded.")
+        existing = get_user_by_email(db, OWNER_EMAIL)
+        if existing:
+            # Re-seeding resets the demo passwords. Skipping instead would let DEMO_PASSWORD
+            # drift from the hashes already in the database, and sign-in would fail with
+            # credentials that look correct in the source.
+            reset = (
+                db.query(User)
+                .filter(User.business_id == existing.business_id, User.password_hash.isnot(None))
+                .all()
+            )
+            for member in reset:
+                member.password_hash = hash_password(DEMO_PASSWORD)
+            db.commit()
+            print(f"Demo business already seeded; reset {len(reset)} passwords.")
+            print(f"  sign in with any demo account / {DEMO_PASSWORD}")
             return
 
         business = Business(
