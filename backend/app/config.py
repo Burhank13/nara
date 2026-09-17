@@ -22,6 +22,15 @@ class Settings(BaseSettings):
     # "lax" suits a same-origin deployment (or the Vite dev proxy); use "none" for a cross-site API.
     cookie_samesite: str = "lax"
 
+    # Transactional email. With no key the app logs the link instead of sending it, so local
+    # development and the test suite work without reaching Resend.
+    resend_api_key: str | None = None
+    email_from: str = "Nara <onboarding@resend.dev>"
+    reset_token_hours: int = 1
+
+    # Error alerting. No DSN means Sentry stays off, which is what you want locally.
+    sentry_dsn: str | None = None
+
     trial_days: int = 14
     trial_seat_limit: int = 10
     invite_expiry_days: int = 7
