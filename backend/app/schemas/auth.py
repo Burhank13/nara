@@ -22,6 +22,20 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password: Password
+
+
+class ResetPreviewResponse(BaseModel):
+    email: EmailStr
+    full_name: str
+
+
 class UserResponse(BaseModel):
     id: uuid.UUID
     email: EmailStr

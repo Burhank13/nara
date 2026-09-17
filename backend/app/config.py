@@ -1,11 +1,16 @@
+from pathlib import Path
+
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 MIN_SECRET_BYTES = 32
+# Pinned to the backend directory rather than the working directory, so the settings are the
+# same whether uvicorn is started from here or from the repo root.
+ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")
 
     environment: str = "development"
     database_url: str = "postgresql://nara:nara@localhost:5432/nara"

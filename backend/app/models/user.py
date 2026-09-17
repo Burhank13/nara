@@ -64,6 +64,10 @@ class User(Base):
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # Only the hash is stored: a leaked database must not hand over working reset links.
+    reset_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True)
+    reset_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
     # Bumped on sign-out, which is what makes an already-issued token stop working.
     token_version: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0", default=0)
     failed_login_count: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0", default=0)

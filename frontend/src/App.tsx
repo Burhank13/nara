@@ -5,6 +5,7 @@ import { useAuth } from './auth/context'
 import { AppShell, type NavItem } from './components/AppShell'
 import { AvailabilityScreen } from './screens/AvailabilityScreen'
 import { BoardScreen } from './screens/BoardScreen'
+import { ForgotPasswordScreen } from './screens/ForgotPasswordScreen'
 import { HoursScreen } from './screens/HoursScreen'
 import { JoinScreen } from './screens/JoinScreen'
 import { LoginScreen } from './screens/LoginScreen'
@@ -12,6 +13,7 @@ import { MoreScreen } from './screens/MoreScreen'
 import { OverviewScreen } from './screens/OverviewScreen'
 import { PayrollScreen } from './screens/PayrollScreen'
 import { ProfileScreen } from './screens/ProfileScreen'
+import { ResetPasswordScreen } from './screens/ResetPasswordScreen'
 import { SetupScreen } from './screens/SetupScreen'
 import { ShiftScreen } from './screens/ShiftScreen'
 import { TeamScreen } from './screens/TeamScreen'
@@ -125,6 +127,8 @@ export default function App() {
         element={!loading && session ? <Navigate to="/" replace /> : <LoginScreen />}
       />
       <Route path="/join/:token" element={<JoinScreen />} />
+      <Route path="/forgot" element={<ForgotPasswordScreen />} />
+      <Route path="/reset/:token" element={<ResetPasswordScreen />} />
       <Route path="/" element={<Landing />} />
 
       <Route

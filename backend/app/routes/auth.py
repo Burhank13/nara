@@ -13,14 +13,19 @@ from app.models.business import Business, BusinessStatus
 from app.models.user import User, UserRole, UserStatus
 from app.schemas.auth import (
     BusinessResponse,
+    ForgotPasswordRequest,
     LoginRequest,
+    ResetPasswordRequest,
+    ResetPreviewResponse,
     SessionResponse,
     SignupRequest,
     TokenResponse,
     UserResponse,
 )
 from app.services.auth import get_user_by_email, get_user_by_id, normalize_email
+from app.services.email import reset_email, send
 from app.services.login_guard import assert_not_locked, record_failure, record_success, revoke_sessions
+from app.services.password_reset import can_reset, clear_reset, find_reset, issue_reset, reset_link
 from app.services.security import REFRESH_TOKEN, decode_token, hash_password, verify_password
 from app.services.session import REFRESH_COOKIE, REFRESH_COOKIE_PATH, token_response
 
@@ -118,6 +123,51 @@ def logout(
 
     if user is not None:
         revoke_sessions(db, user)
+
+
+@router.post("/forgot-password", status_code=status.HTTP_204_NO_CONTENT)
+def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)) -> None:
+    """
+    Always answers 204, whether or not the address is on file. Saying "no such account" here
+    would turn this into a way to find out who has one.
+    """
+    user = get_user_by_email(db, payload.email)
+    if not can_reset(user):
+        return
+
+    assert user is not None
+    raw_token = issue_reset(user)
+    db.flush()
+    send(
+        reset_email(
+            to=user.email,
+            full_name=user.full_name.split()[0],
+            url=reset_link(raw_token),
+            hours=settings.reset_token_hours,
+        )
+    )
+
+
+@router.get("/reset/{raw_token}", response_model=ResetPreviewResponse)
+def preview_reset(raw_token: str, db: Session = Depends(get_db)) -> ResetPreviewResponse:
+    """Lets the screen say "this link has expired" before someone types a new password."""
+    user = find_reset(db, raw_token)
+    if user is None:
+        raise api_error(404, "reset_invalid", "This link has expired or has already been used.")
+    return ResetPreviewResponse(email=user.email, full_name=user.full_name)
+
+
+@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)) -> None:
+    user = find_reset(db, payload.token)
+    if user is None:
+        raise api_error(404, "reset_invalid", "This link has expired or has already been used.")
+
+    user.password_hash = hash_password(payload.password)
+    clear_reset(user)
+    # Whoever reset the password keeps the account; anyone already signed in loses their session.
+    revoke_sessions(db, user)
+    record_success(db, user)
 
 
 @router.get("/me", response_model=SessionResponse)

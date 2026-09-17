@@ -8,4 +8,5 @@ bcrypt
 pydantic-settings
 python-multipart
 email-validator
+httpx
 tzdata

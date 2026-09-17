@@ -7,6 +7,9 @@ import sqlalchemy as sa
 # The app reads its settings at import time, so the test database is chosen before anything else.
 TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL", "postgresql://nara:nara@localhost:5432/nara_test")
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
+# backend/.env holds a real Resend key for development. Blanking it here keeps the suite offline:
+# without it, tests would post invites and reset links to the provider for every fake address.
+os.environ["RESEND_API_KEY"] = ""
 
 from alembic.config import Config  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

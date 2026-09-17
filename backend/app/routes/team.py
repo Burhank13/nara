@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import get_db
 from app.deps import require_owner, require_owner_or_manager, require_writable_business
 from app.errors import api_error
@@ -19,6 +20,7 @@ from app.schemas.team import (
     TeamResponse,
 )
 from app.services.auth import get_user_by_email, normalize_email
+from app.services.email import invite_email, send
 from app.services.invites import clear_invite, invite_link, issue_invite
 from app.services.seats import get_seat_usage, reserve_seat
 
@@ -34,12 +36,28 @@ def _get_member(db: Session, business_id: uuid.UUID, user_id: uuid.UUID) -> User
     return member
 
 
-def _invite_response(db: Session, business: Business, member: User, raw_token: str) -> InviteResponse:
+def _invite_response(
+    db: Session, business: Business, member: User, raw_token: str, invited_by: User
+) -> InviteResponse:
     db.flush()
     db.refresh(member)
+    url = invite_link(raw_token)
+
+    # The link comes back either way: if the email bounces the owner can still hand it over.
+    send(
+        invite_email(
+            to=member.email,
+            full_name=member.full_name.split()[0],
+            business_name=business.name,
+            invited_by=invited_by.full_name,
+            url=url,
+            days=settings.invite_expiry_days,
+        )
+    )
+
     return InviteResponse(
         member=MemberResponse.model_validate(member),
-        invite_url=invite_link(raw_token),
+        invite_url=url,
         seats=SeatUsageResponse.of(get_seat_usage(db, business)),
     )
 
@@ -96,7 +114,7 @@ def create_invite(
         db.add(member)
 
     raw_token = issue_invite(member, current_user)
-    return _invite_response(db, business, member, raw_token)
+    return _invite_response(db, business, member, raw_token, current_user)
 
 
 @router.patch("/members/{user_id}", response_model=MemberResponse)
@@ -143,7 +161,7 @@ def resend_invite(
     business = current_user.business if invite_still_live else reserve_seat(db, current_user.business_id)
 
     raw_token = issue_invite(member, current_user)
-    return _invite_response(db, business, member, raw_token)
+    return _invite_response(db, business, member, raw_token, current_user)
 
 
 @router.delete("/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)

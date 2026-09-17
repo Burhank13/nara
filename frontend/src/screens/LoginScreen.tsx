@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import { useAuth } from '../auth/context'
 import { Logo } from '../components/AppShell'
@@ -70,6 +70,10 @@ export function LoginScreen() {
         <Button type="submit" full disabled={busy}>
           {busy ? 'Signing in…' : 'Sign in'}
         </Button>
+
+        <Link to="/forgot" className="text-center text-sm text-teal underline underline-offset-4">
+          Forgot your password?
+        </Link>
       </form>
 
       <p className="text-sm text-muted">
