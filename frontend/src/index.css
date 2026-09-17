@@ -1,0 +1,84 @@
+@import 'tailwindcss';
+
+/* Palette and type taken from the Nara design canvas. */
+@theme {
+  --color-paper: #f6f3ec;
+  --color-surface: #ffffff;
+  --color-ink: #1c1f1d;
+  --color-muted: #5b615c;
+  --color-line: #e2ddd1;
+  --color-line-soft: #efebe2;
+
+  --color-teal: #0e6b5c;
+  --color-teal-deep: #094d42;
+  --color-teal-soft: #dcefea;
+  --color-teal-mid: #2f8f7d;
+
+  --color-amber: #b45309;
+  --color-amber-soft: #fbf3e6;
+  --color-danger: #b42318;
+  --color-danger-deep: #8f1d15;
+
+  --font-display: 'Bricolage Grotesque', 'IBM Plex Sans', system-ui, sans-serif;
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+html {
+  background: var(--color-paper);
+  /* Tap targets stay put when a shift timer re-renders every second. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  /* Pages never scroll sideways on a phone. */
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  margin: 0;
+}
+
+/* Numbers line up in columns. */
+.tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility input {
+  min-height: 3rem;
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  padding: 0 0.875rem;
+  /* 16px keeps iOS Safari from zooming in when a field takes focus. */
+  font-size: 16px;
+  color: var(--color-ink);
+
+  &:focus {
+    outline: 2px solid var(--color-teal);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    background: var(--color-line-soft);
+    color: var(--color-muted);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
