@@ -10,6 +10,10 @@ const API_PATHS = ['/api', '/health']
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    // Vite rejects requests arriving under a hostname it doesn't know. Allowing the tunnel
+    // providers lets a real phone reach this dev server over HTTPS, which the clock-in demo
+    // needs: browsers only hand out location on a secure origin.
+    allowedHosts: ['.trycloudflare.com', '.ngrok-free.app', '.ngrok.app', '.loca.lt'],
     proxy: Object.fromEntries(
       API_PATHS.map((path) => [path, { target: 'http://localhost:8000', changeOrigin: true }]),
     ),
