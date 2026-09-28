@@ -218,9 +218,14 @@ function Idle({
           bearing={check?.bearing}
         />
         <div className="flex items-start gap-3 border-t border-line px-4 py-4">
-          <StatusDot ok={Boolean(check?.inside) && accurate} pending={geo.status === 'locating'} />
+          <StatusDot
+            ok={Boolean(check?.inside) && accurate}
+            pending={geo.status === 'locating' || !zonesLoaded}
+          />
           <div>
-            <p className="font-display text-lg font-bold">{headline(geo, check, accurate)}</p>
+            <p className="font-display text-lg font-bold">
+              {headline(geo, check, accurate, zonesLoaded)}
+            </p>
             <p className="mt-0.5 text-sm text-muted">{detail(geo, check)}</p>
           </div>
         </div>
@@ -267,11 +272,19 @@ function StatusDot({ ok, pending }: { ok: boolean; pending: boolean }) {
   )
 }
 
-function headline(geo: GeoState, check: ReturnType<typeof nearestZone>, accurate: boolean): string {
+function headline(
+  geo: GeoState,
+  check: ReturnType<typeof nearestZone>,
+  accurate: boolean,
+  zonesLoaded: boolean,
+): string {
   if (geo.status === 'locating') return 'Finding your location…'
   if (geo.status === 'denied') return 'Location is switched off'
   if (geo.status === 'unsupported') return 'This device has no location'
   if (geo.status === 'unavailable') return "Couldn't get your location"
+  // Zones still in flight is not the same as none existing: saying "no zone" here tells an owner
+  // who just drew one that it never saved.
+  if (!zonesLoaded) return 'Checking the shop zone…'
   if (!check) return 'No shop zone set up'
   if (!accurate) return 'Location is not accurate enough'
   return check.inside ? `You're at ${check.zone.name}` : `You're too far from ${check.zone.name}`
