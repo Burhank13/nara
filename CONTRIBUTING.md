@@ -10,7 +10,8 @@ cd backend  && python -m alembic check
 cd frontend && npm run lint && npm run build && npm run e2e
 ```
 
-There is no CI yet, so this is the whole safety net.
+CI runs all of this on every push and pull request. Running it locally first is still the
+quicker way to find out.
 
 ## Where code goes
 

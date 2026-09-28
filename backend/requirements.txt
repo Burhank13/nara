@@ -9,4 +9,5 @@ pydantic-settings
 python-multipart
 email-validator
 httpx
+sentry-sdk
 tzdata

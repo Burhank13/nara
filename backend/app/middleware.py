@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
+from app.observability import tag_request
 
 logger = logging.getLogger("nara.request")
 
@@ -30,6 +31,7 @@ def install(app: FastAPI) -> None:
     ) -> Response:
         request_id = request.headers.get(REQUEST_ID_HEADER) or uuid.uuid4().hex[:12]
         request.state.request_id = request_id
+        tag_request(request_id)
         started = time.perf_counter()
 
         response = await call_next(request)
@@ -75,6 +77,7 @@ def install(app: FastAPI) -> None:
     async def handle_unexpected_error(request: Request, exc: Exception) -> JSONResponse:
         """A crash must not leak a stack trace to the caller; the request id ties it to the log."""
         request_id = getattr(request.state, "request_id", "unknown")
+        # This log line is also what reports the crash to Sentry, tagged with the request id.
         logger.exception("Unhandled error on %s %s", request.method, request.url.path)
         return JSONResponse(
             status_code=500,

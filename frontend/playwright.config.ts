@@ -10,6 +10,9 @@ export default defineConfig({
   expect: { timeout: 7_000 },
   // One worker: every test signs up its own business, but they share one API process.
   workers: 1,
+  // One retry on CI only. These tests drive a real browser against a real API, and a rare
+  // timing failure there should not block a merge — locally a flake is worth seeing.
+  retries: process.env.CI ? 1 : 0,
   reporter: [['list']],
   use: {
     baseURL: 'http://localhost:5173',

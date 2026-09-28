@@ -88,7 +88,7 @@ backend/
     config.py    every setting, with its default and why
     main.py      app assembly; all routers mounted under /api
   alembic/       migrations, 0001 upward
-  tests/         130 tests against a real Postgres
+  tests/         139 tests against a real Postgres
 frontend/
   src/
     screens/     one file per route
@@ -102,7 +102,7 @@ Dockerfile       one image: API + built frontend on a single origin
 ## Tests
 
 ```bash
-cd backend  && python -m pytest          # 130 tests, needs Postgres up
+cd backend  && python -m pytest          # 139 tests, needs Postgres up
 cd backend  && python -m ruff check . && python -m ruff format --check .
 cd frontend && npm run build             # tsc -b runs first
 cd frontend && npm run lint
@@ -111,6 +111,9 @@ cd frontend && npm run e2e               # needs API + Vite running
 
 The backend suite creates and migrates its own `nara_test` database, so it never touches your
 development data. It also blanks `RESEND_API_KEY`, so no test ever emails anyone.
+
+All of this runs on every push and pull request — see [.github/workflows/ci.yml](.github/workflows/ci.yml).
+The browser tests are a separate job, so a slow or flaky one doesn't hold up the fast feedback.
 
 Playwright drives the Chrome already installed on the machine rather than downloading a browser
 bundle. If you don't have Chrome, change `CHANNEL` in `frontend/playwright.config.ts` to `msedge`.
@@ -131,6 +134,7 @@ The ones that actually matter:
 | `RESEND_API_KEY` | Blank means invite and reset links are logged to the console instead of emailed, which is what you want locally. |
 | `MAX_GPS_ACCURACY_M` | 100 m. Loosening it lets laptop Wi-Fi fixes start shifts. |
 | `PAYROLL_ROUNDING_MINUTES` | 15. Set to 0 to export exact times. |
+| `SENTRY_DSN` | Blank turns error alerting off. Set it and crashes are reported, tagged with the request id the caller saw. |
 
 ## Deploying
 
@@ -156,4 +160,4 @@ See [docs/operations.md](docs/operations.md) for deploying somewhere real.
 Working and tested end to end, not yet deployed anywhere. Known gaps: no Stripe integration
 (the account states exist, nothing charges a card), the payroll CSV is a generic
 `Payroll code,Employee,Date,Hours` rather than a Xero or MYOB import template, zones are set by
-coordinates with no map picker, and there is no CI.
+coordinates with no map picker, and there are no trial nudge emails or admin console.

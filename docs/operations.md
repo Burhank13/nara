@@ -117,9 +117,26 @@ older schema than its code.
 | `APP_BASE_URL` | Your real public URL. |
 | `CORS_ORIGINS` | The same URL. Single-origin means this is mostly moot, but keep it right. |
 | `RESEND_API_KEY`, `EMAIL_FROM` | From a **verified domain**, or delivery is limited to your own address. |
-| `SENTRY_DSN` | Optional. Blank turns Sentry off. |
+| `SENTRY_DSN` | Optional but recommended. Blank turns error alerting off entirely. |
 
 Changing `JWT_SECRET` signs everyone out. That is the emergency "revoke every session" lever.
+
+### Error alerting
+
+Set `SENTRY_DSN` and crashes are reported. Each event is tagged `request_id` with the same id
+returned in the 500 body, so a customer quoting "request ab12cd34" leads straight to the event
+rather than a search through everything that broke that minute.
+
+Anything logged at ERROR becomes an event too, which is how a failed email send reaches you —
+`send()` never raises, so the log line is the only signal.
+
+`send_default_pii` is off: staff names, emails and clock-in coordinates are the whole database
+here, and an alert needs the stack trace, not the person it happened to. Performance tracing is
+off as well (`SENTRY_TRACES_SAMPLE_RATE=0.0`) — it bills per transaction, and errors are the
+point. Raise it if you get a slow endpoint worth measuring.
+
+To check it is live, cause a crash on a staging deploy and confirm the event arrives with the
+tag. Do not test it in production.
 
 ### Health checks
 
@@ -132,6 +149,23 @@ Changing `JWT_SECRET` signs everyone out. That is the emergency "revoke every se
 The app locks an account after 8 failed sign-ins. That is per-account, not per-IP — **per-IP
 limits belong at your proxy or CDN**, not in the app process. Put something in front of this
 before it's public.
+
+## CI
+
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs on every push to `main` and every
+pull request:
+
+| Job | What it does |
+|---|---|
+| **Backend** | ruff lint and format, `alembic upgrade head`, `alembic check` for model drift, a full down-and-up migration cycle, then the test suite against a real Postgres service container. |
+| **Frontend** | oxlint, and `npm run build` — which is `tsc -b && vite build`, so it typechecks too. |
+| **Browser tests** | Starts Postgres, the API and the dev server, installs Chrome, runs Playwright. Depends on the other two, so it only runs once they pass. Traces from a failure are uploaded as an artifact. |
+
+The browser job is deliberately separate and last: it is the slow one, and a flake in it should
+not hide a lint error. It retries once on CI only — locally a flake is worth seeing.
+
+`alembic downgrade base` is exercised on every run because the test suite depends on it, and a
+downgrade nobody has tried is a downgrade that does not work.
 
 ## Migrations
 

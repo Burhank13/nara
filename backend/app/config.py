@@ -35,6 +35,9 @@ class Settings(BaseSettings):
 
     # Error alerting. No DSN means Sentry stays off, which is what you want locally.
     sentry_dsn: str | None = None
+    # Performance tracing bills per transaction. Errors are the point; leave this at 0 until
+    # there is a slow endpoint worth measuring, then raise it a little.
+    sentry_traces_sample_rate: float = 0.0
 
     trial_days: int = 14
     trial_seat_limit: int = 10

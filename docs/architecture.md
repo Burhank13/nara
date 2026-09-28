@@ -142,7 +142,13 @@ it is. Extra keys carry facts the UI needs to explain the refusal, like `distanc
 `outside_zone`. See [api.md](api.md#error-codes).
 
 Unhandled exceptions return a generic 500 carrying a `request_id` and never a stack trace. The
-same id is on the log line.
+same id is on the log line, and on the Sentry event as a tag — so a support message quoting
+the id someone saw on screen leads straight to the crash.
+
+The tag is applied at the *start* of the request, not where the crash is caught. Sentry
+reports an exception the first time it sees it, and that is the `logger.exception` call
+inside the handler — tagging afterwards would be too late, and adding a second
+`capture_exception` there is silently deduplicated rather than being a second alert.
 
 ## Frontend
 
@@ -159,4 +165,4 @@ both times a grid item's default `min-width: auto` letting long content widen it
 
 No Stripe calls — the account states and seat limits are real, but nothing charges a card. No
 background jobs, no websockets (the live board polls), no map picker for zones, no service worker,
-no admin console, no CI.
+no admin console.

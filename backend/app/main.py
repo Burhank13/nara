@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app import middleware
+from app import middleware, observability
 from app.config import settings
 from app.database import get_db
 from app.errors import api_error
@@ -23,6 +23,8 @@ from app.routes.team import router as team_router
 from app.routes.timesheets import router as timesheets_router
 
 API_PREFIX = "/api"
+
+observability.init()
 
 app = FastAPI(title="Nara Shift Tracker")
 
