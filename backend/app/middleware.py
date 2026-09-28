@@ -24,6 +24,20 @@ SECURITY_HEADERS = {
 }
 
 
+def harden(response: Response, request_id: str) -> Response:
+    """Stamp a response with the request id and the security headers.
+
+    Applied in two places because the catch-all 500 handler runs in Starlette's
+    ServerErrorMiddleware, which sits outside this middleware — its response never comes back
+    through, so without this a crash is the one reply with no id and no headers on it.
+    """
+    response.headers[REQUEST_ID_HEADER] = request_id
+    response.headers.update(SECURITY_HEADERS)
+    if settings.environment != "development":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
+
+
 def install(app: FastAPI) -> None:
     @app.middleware("http")
     async def observe_and_harden(
@@ -36,10 +50,7 @@ def install(app: FastAPI) -> None:
 
         response = await call_next(request)
 
-        response.headers[REQUEST_ID_HEADER] = request_id
-        response.headers.update(SECURITY_HEADERS)
-        if settings.environment != "development":
-            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        harden(response, request_id)
 
         logger.info(
             "%s %s %s %.0fms",
@@ -79,15 +90,18 @@ def install(app: FastAPI) -> None:
         request_id = getattr(request.state, "request_id", "unknown")
         # This log line is also what reports the crash to Sentry, tagged with the request id.
         logger.exception("Unhandled error on %s %s", request.method, request.url.path)
-        return JSONResponse(
-            status_code=500,
-            content={
-                "detail": {
-                    "code": "server_error",
-                    "message": "Something went wrong at our end. Try again.",
-                    "request_id": request_id,
-                }
-            },
+        return harden(
+            JSONResponse(
+                status_code=500,
+                content={
+                    "detail": {
+                        "code": "server_error",
+                        "message": "Something went wrong at our end. Try again.",
+                        "request_id": request_id,
+                    }
+                },
+            ),
+            request_id,
         )
 
 

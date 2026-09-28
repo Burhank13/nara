@@ -1,5 +1,7 @@
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app import middleware
 from app.config import settings
 from tests.helpers import PASSWORD, auth, signup
 
@@ -93,3 +95,24 @@ def test_a_bad_request_body_names_the_fields(client: TestClient) -> None:
 
 def test_readiness_checks_the_database(client: TestClient) -> None:
     assert client.get("/health/ready").json() == {"status": "ready"}
+
+
+def test_even_a_crash_carries_the_request_id_and_the_security_headers() -> None:
+    """The 500 handler runs outside the middleware, so its headers have to be set separately.
+
+    This is the response where the id matters most: it is the one the caller is asked to quote.
+    """
+    app = FastAPI()
+    middleware.install(app)
+
+    @app.get("/boom")
+    def boom() -> None:
+        raise RuntimeError("kaboom")
+
+    with TestClient(app, raise_server_exceptions=False) as crashing:
+        response = crashing.get("/boom")
+
+    assert response.status_code == 500
+    assert response.headers["X-Request-ID"] == response.json()["detail"]["request_id"]
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"

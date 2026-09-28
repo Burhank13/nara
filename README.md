@@ -88,13 +88,13 @@ backend/
     config.py    every setting, with its default and why
     main.py      app assembly; all routers mounted under /api
   alembic/       migrations, 0001 upward
-  tests/         139 tests against a real Postgres
+  tests/         the backend suite, against a real Postgres
 frontend/
   src/
     screens/     one file per route
     components/  shared UI
     lib/         API client, geolocation, formatting
-  e2e/           15 Playwright tests, run on desktop and phone viewports
+  e2e/           Playwright specs, run at desktop and phone viewports
 docs/            architecture, API reference, runbook
 Dockerfile       one image: API + built frontend on a single origin
 ```
@@ -102,7 +102,7 @@ Dockerfile       one image: API + built frontend on a single origin
 ## Tests
 
 ```bash
-cd backend  && python -m pytest          # 139 tests, needs Postgres up
+cd backend  && python -m pytest          # needs Postgres up
 cd backend  && python -m ruff check . && python -m ruff format --check .
 cd frontend && npm run build             # tsc -b runs first
 cd frontend && npm run lint
