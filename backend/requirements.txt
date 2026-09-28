@@ -2,7 +2,9 @@ fastapi
 uvicorn[standard]
 sqlalchemy
 alembic
-psycopg2-binary
+# psycopg 3, not psycopg2: SQLAlchemy 2.1 resolves a bare postgresql:// URL to this driver,
+# so every DATABASE_URL keeps working without a +driver suffix.
+psycopg[binary]
 pyjwt
 bcrypt
 pydantic-settings
