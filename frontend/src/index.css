@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-/* Palette and type taken from the Nara design canvas. */
+/* Palette and type taken from the MAF design canvas. */
 @theme {
   --color-paper: #f6f3ec;
   --color-surface: #ffffff;

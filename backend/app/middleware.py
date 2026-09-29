@@ -11,7 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.config import settings
 from app.observability import tag_request
 
-logger = logging.getLogger("nara.request")
+logger = logging.getLogger("maf.request")
 
 REQUEST_ID_HEADER = "X-Request-ID"
 

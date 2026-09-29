@@ -1,6 +1,6 @@
-# Nara shift logging: plan summary (updated 17 Sep 2026)
+# MAF shift logging: plan summary (updated 17 Sep 2026)
 
-The full design canvas is the artifact "Nara Shift Log Plan". It has plan boards 1–6 and 11 screen mockups.
+The full design canvas is the artifact "MAF Shift Log Plan". It has plan boards 1–6 and 11 screen mockups.
 
 ## Scope
 - **Owner:** see employees, the weekly availability grid, who is on shift now, hours per employee for any period and team totals (with CSV export). The owner can also edit a shift's start or end time. A reason is required and each edit goes to the shift_edits audit log. Only the owner manages billing, seats and business settings.
@@ -65,7 +65,7 @@ What you see:
 - An admin console listing each business's seats, status, revenue and trial end.
 
 ## Stack
-The existing nara repo stays: FastAPI, PostgreSQL 16 with SQLAlchemy 2 and Alembic, and React + Vite + TS as an installable PWA.
+The existing maf repo stays: FastAPI, PostgreSQL 16 with SQLAlchemy 2 and Alembic, and React + Vite + TS as an installable PWA.
 - Swap python-jose and passlib for PyJWT and bcrypt.
 - Stripe Billing with seat quantity, Leaflet + OpenStreetMap with a geocoding API for the map step, Resend or Postmark for email, and Sentry for error alerts.
 - Host on Render or Railway. Use Fly.io if you want a Sydney region.

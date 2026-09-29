@@ -21,12 +21,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./
 COPY --from=frontend /build/dist ./static
 
-RUN useradd --create-home --uid 10001 nara && chown -R nara:nara /app
-USER nara
+RUN useradd --create-home --uid 10001 maf && chown -R maf:maf /app
+USER maf
 
 EXPOSE 8000
+# PORT is read by Python rather than expanded by the shell, so a host that sets it (Render
+# does) is checked on the port uvicorn is actually listening on.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"
+    CMD python -c "import os,urllib.request;urllib.request.urlopen('http://127.0.0.1:'+os.environ.get('PORT','8000')+'/health')"
 
 # Migrations run before the first request, so a deploy can never serve an older schema.
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# SEED_DEMO_DATA fills the public demo with a worked fortnight; it is idempotent, and unset
+# everywhere that holds real data.
+CMD ["sh", "-c", "alembic upgrade head && if [ \"$SEED_DEMO_DATA\" = \"true\" ]; then python -m app.seed; fi && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

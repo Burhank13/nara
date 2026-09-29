@@ -1,4 +1,4 @@
-# Nara frontend
+# MAF frontend
 
 React 19 + Vite + Tailwind v4 + TanStack Query. One responsive app serving all three roles.
 

@@ -1,6 +1,6 @@
 # Operations
 
-Running Nara: locally, in front of a customer, and in production.
+Running MAF: locally, in front of a customer, and in production.
 
 ## Running it locally
 
@@ -29,7 +29,7 @@ cd backend && python -m app.seed
 ```
 
 Creates "Sparkle Car Wash" with `owner@`, `manager@` and `employee@carwash.demo`, all on
-`narademo123`, plus one unaccepted invite for `newstarter@carwash.demo`.
+`mafdemo123`, plus one unaccepted invite for `newstarter@carwash.demo`.
 
 Re-running it **resets those passwords** rather than skipping. That is deliberate: skipping let
 `DEMO_PASSWORD` in the source drift from the hashes in the database, and sign-in then failed with
@@ -106,6 +106,48 @@ docker compose --profile prod up --build     # http://localhost:8080
 
 Migrations run in the container's `CMD` before uvicorn starts, so a deploy can never serve an
 older schema than its code.
+
+## Putting the demo online (free)
+
+[`render.yaml`](../render.yaml) deploys the public demo to Render's free plan. It is a demo
+blueprint, not a production one — see the warning at the top of the file.
+
+**1. A database.** Create a free project at [neon.com](https://neon.com) and copy the
+connection string. Not Render's own free Postgres: that one is **deleted 30 days after it is
+created**, which would take the demo down a month after you launch it. Neon's free plan does
+not expire.
+
+**2. The service.** In Render, New → Blueprint, point it at the repo. It reads `render.yaml`
+and asks for the values marked `sync: false`:
+
+| Variable | Value |
+|---|---|
+| `DATABASE_URL` | The Neon string. |
+| `APP_BASE_URL` | The Render URL — you get it after the first deploy, so set it then and redeploy. |
+| `CORS_ORIGINS` | The same URL. |
+
+`APP_BASE_URL` being wrong is the one mistake worth avoiding: every invite and reset link is
+built from it, so they all point at localhost until it is right.
+
+**3. Keep it awake.** Free services sleep after 15 minutes and take about a minute to wake,
+which for a link you send people is the entire first impression.
+[`keep-demo-warm.yml`](../.github/workflows/keep-demo-warm.yml) pings it every 10 minutes.
+Set a repository variable `DEMO_URL` to the Render URL to switch it on.
+
+This fits the free allowance: Render gives 750 instance-hours a month and a month is about 730,
+so one service can stay up continuously. It pings `/health`, which has no dependencies, so the
+web service stays awake without waking Neon and spending its compute-hours.
+
+**4. The demo account.** `SEED_DEMO_DATA=true` is set in the blueprint, so every boot builds
+the demo business: a shop zone, a fortnight of worked shifts across two staff, one shift edited
+with its reason on the record, and payroll codes so the export runs. Visitors sign in as
+`owner@carwash.demo` / `mafdemo123`, or sign up their own business.
+
+Leave `RESEND_API_KEY` unset. With no key the app logs invite and reset links instead of
+sending them, so a stranger typing an address into your demo cannot make it email anyone.
+
+**Never set `SEED_DEMO_DATA` where real hours are stored.** It rewrites the demo business and
+resets its passwords on every boot.
 
 ### What must be set in production
 
@@ -185,8 +227,8 @@ generated file before committing it.
 `docker compose` keeps Postgres on a named volume, `postgres_data`.
 
 ```bash
-docker compose exec postgres pg_dump -U nara nara > backup.sql
-docker compose exec -T postgres psql -U nara nara < backup.sql
+docker compose exec postgres pg_dump -U maf maf > backup.sql
+docker compose exec -T postgres psql -U maf maf < backup.sql
 ```
 
 `docker compose down -v` destroys that volume. There is no other copy.

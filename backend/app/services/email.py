@@ -5,7 +5,7 @@ import httpx
 
 from app.config import settings
 
-logger = logging.getLogger("nara.email")
+logger = logging.getLogger("maf.email")
 
 RESEND_ENDPOINT = "https://api.resend.com/emails"
 TIMEOUT_SECONDS = 10
@@ -57,7 +57,7 @@ def _layout(heading: str, body: str, button_label: str, url: str, footer: str) -
 <div style="font-family:-apple-system,'Segoe UI',sans-serif;background:#F6F3EC;padding:32px">
   <div style="max-width:480px;margin:0 auto;background:#FFF;border:1px solid #E2DDD1;
               border-radius:16px;padding:28px">
-    <p style="margin:0 0 20px;font-size:20px;font-weight:700;color:#0E6B5C">nara</p>
+    <p style="margin:0 0 20px;font-size:20px;font-weight:700;color:#0E6B5C">MAF</p>
     <h1 style="margin:0 0 12px;font-size:22px;color:#1C1F1D">{heading}</h1>
     <p style="margin:0 0 22px;font-size:15px;line-height:1.55;color:#5B615C">{body}</p>
     <a href="{url}" style="display:inline-block;background:#0E6B5C;color:#FFF;text-decoration:none;
@@ -71,10 +71,10 @@ def _layout(heading: str, body: str, button_label: str, url: str, footer: str) -
 def reset_email(to: str, full_name: str, url: str, hours: int) -> Email:
     return Email(
         to=to,
-        subject="Reset your Nara password",
+        subject="Reset your MAF password",
         html=_layout(
             heading=f"Hi {full_name}",
-            body="Someone asked to reset the password on your Nara account. "
+            body="Someone asked to reset the password on your MAF account. "
             "Choose a new one using the button below.",
             button_label="Set a new password",
             url=url,
@@ -87,10 +87,10 @@ def reset_email(to: str, full_name: str, url: str, hours: int) -> Email:
 def invite_email(to: str, full_name: str, business_name: str, invited_by: str, url: str, days: int) -> Email:
     return Email(
         to=to,
-        subject=f"{invited_by} added you to {business_name} on Nara",
+        subject=f"{invited_by} added you to {business_name} on MAF",
         html=_layout(
             heading=f"Hi {full_name}",
-            body=f"{invited_by} has added you to {business_name}. Nara is how you'll clock in and "
+            body=f"{invited_by} has added you to {business_name}. MAF is how you'll clock in and "
             "out of your shifts and see the hours you've worked.",
             button_label="Set up your account",
             url=url,

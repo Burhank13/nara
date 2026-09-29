@@ -85,7 +85,7 @@ export function Logo({ className = '' }: { className?: string }) {
   return (
     <span className={`flex items-center gap-2 ${className}`}>
       <Icon path={ICONS.shift} className="h-6 w-6 text-teal" />
-      <span className="font-display text-xl font-bold tracking-tight">nara</span>
+      <span className="font-display text-xl font-bold tracking-tight">MAF</span>
     </span>
   )
 }

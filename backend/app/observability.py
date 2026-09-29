@@ -10,7 +10,7 @@ import sentry_sdk
 
 from app.config import settings
 
-logger = logging.getLogger("nara.observability")
+logger = logging.getLogger("maf.observability")
 
 
 def init() -> None:

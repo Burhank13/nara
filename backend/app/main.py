@@ -26,7 +26,7 @@ API_PREFIX = "/api"
 
 observability.init()
 
-app = FastAPI(title="Nara Shift Tracker")
+app = FastAPI(title="MAF Shift Tracker")
 
 middleware.install(app)
 

@@ -1,0 +1,51 @@
+# Render blueprint for the public demo.
+#
+# Deliberately NOT a template for a real customer deployment: the free plan sleeps after 15
+# minutes and runs on 0.1 CPU, and SEED_DEMO_DATA below rewrites the demo business on every
+# boot. For a paying business, use a paid instance and leave SEED_DEMO_DATA unset.
+#
+# The database is not declared here. Render's free Postgres is deleted 30 days after it is
+# created, which would quietly take the demo down a month after launch — so DATABASE_URL is
+# set by hand to a Neon connection string, whose free plan does not expire.
+
+services:
+  - type: web
+    name: maf-demo
+    runtime: docker
+    plan: free
+    region: singapore # closest Render region to Australia
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+
+    envVars:
+      - key: ENVIRONMENT
+        value: production # turns on HSTS and Secure cookies
+
+      - key: JWT_SECRET
+        generateValue: true # Render generates one; changing it signs everyone out
+
+      # Paste the Neon connection string here in the dashboard. Marked sync:false so it is
+      # never committed and Render prompts for it on first deploy.
+      - key: DATABASE_URL
+        sync: false
+
+      # Both are the same public URL: the API serves the built frontend, so there is one origin.
+      # Set these once the service has its URL, then redeploy — invite and reset links are built
+      # from APP_BASE_URL and will point at localhost until it is right.
+      - key: APP_BASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+
+      # Fills the demo with a worked fortnight on every boot. Never set this where real hours
+      # are stored.
+      - key: SEED_DEMO_DATA
+        value: "true"
+
+      # Left unset on purpose: with no key, invite and reset links are logged instead of
+      # emailed, so the demo cannot send mail to strangers who type in an address.
+      # - key: RESEND_API_KEY
+      #
+      # Worth setting if you want to know when the demo breaks.
+      # - key: SENTRY_DSN

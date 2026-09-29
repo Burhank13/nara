@@ -237,7 +237,7 @@ function Idle({
 
       {geo.status === 'denied' && (
         <Notice>
-          Nara needs your location to check you're at the shop. Turn location on for this site in
+          MAF needs your location to check you're at the shop. Turn location on for this site in
           your browser settings, then{' '}
           <button className="underline underline-offset-2" onClick={onRetry}>
             try again

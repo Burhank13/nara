@@ -169,7 +169,7 @@ function JoinForm({
       </form>
 
       <p className="text-center text-sm text-muted">
-        Next: allow location, then add Nara to your home screen.
+        Next: allow location, then add MAF to your home screen.
       </p>
     </Shell>
   )
@@ -187,7 +187,7 @@ function AllowLocation() {
       <div>
         <h1 className="font-display text-3xl font-bold tracking-tight">Allow location</h1>
         <p className="mt-2 text-muted">
-          Nara checks you're at the shop when you start a shift, and records where you were when you
+          MAF checks you're at the shop when you start a shift, and records where you were when you
           end one. It never tracks you in between.
         </p>
       </div>
@@ -214,7 +214,7 @@ function AllowLocation() {
       </Button>
 
       <p className="text-center text-sm text-muted">
-        Tip: add Nara to your home screen from your browser's share menu, so it opens like an app.
+        Tip: add MAF to your home screen from your browser's share menu, so it opens like an app.
       </p>
     </Shell>
   )

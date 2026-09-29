@@ -1,4 +1,4 @@
-# Nara
+# MAF
 
 Shift logging for small businesses that pay people by the hour — car washes, cafés, cleaners.
 Staff clock in from their phone, and the app checks they are actually at the shop before it
@@ -49,7 +49,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173 and sign in as `owner@carwash.demo` / `narademo123`.
+Open http://localhost:5173 and sign in as `owner@carwash.demo` / `mafdemo123`.
 The seed also creates `manager@carwash.demo` and `employee@carwash.demo` on the same password,
 plus one unaccepted invite so you can see that flow.
 
@@ -109,7 +109,7 @@ cd frontend && npm run lint
 cd frontend && npm run e2e               # needs API + Vite running
 ```
 
-The backend suite creates and migrates its own `nara_test` database, so it never touches your
+The backend suite creates and migrates its own `maf_test` database, so it never touches your
 development data. It also blanks `RESEND_API_KEY`, so no test ever emails anyone.
 
 All of this runs on every push and pull request — see [.github/workflows/ci.yml](.github/workflows/ci.yml).

@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")
 
     environment: str = "development"
-    database_url: str = "postgresql://nara:nara@localhost:5432/nara"
+    database_url: str = "postgresql://maf:maf@localhost:5432/maf"
 
     jwt_secret: str = "development-only-secret-do-not-ship-this"
     jwt_algorithm: str = "HS256"
@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     # Transactional email. With no key the app logs the link instead of sending it, so local
     # development and the test suite work without reaching Resend.
     resend_api_key: str | None = None
-    email_from: str = "Nara <onboarding@resend.dev>"
+    email_from: str = "MAF <onboarding@resend.dev>"
     reset_token_hours: int = 1
 
     # Error alerting. No DSN means Sentry stays off, which is what you want locally.

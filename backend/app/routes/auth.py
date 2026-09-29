@@ -83,14 +83,14 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
 @router.post("/refresh", response_model=TokenResponse)
 def refresh(
     response: Response,
-    nara_refresh: str | None = Cookie(default=None),
+    maf_refresh: str | None = Cookie(default=None),
     db: Session = Depends(get_db),
 ) -> TokenResponse:
-    if not nara_refresh:
+    if not maf_refresh:
         raise api_error(401, "not_authenticated", "Sign in to continue.")
 
     try:
-        payload = decode_token(nara_refresh, REFRESH_TOKEN)
+        payload = decode_token(maf_refresh, REFRESH_TOKEN)
         user_id = uuid.UUID(payload["sub"])
     except (jwt.InvalidTokenError, KeyError, ValueError) as exc:
         raise api_error(401, "invalid_token", "Sign in to continue.") from exc
@@ -107,16 +107,16 @@ def refresh(
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout(
     response: Response,
-    nara_refresh: str | None = Cookie(default=None),
+    maf_refresh: str | None = Cookie(default=None),
     db: Session = Depends(get_db),
 ) -> None:
     """Clearing the cookie isn't enough on its own: the token it held would still be valid."""
     response.delete_cookie(REFRESH_COOKIE, path=REFRESH_COOKIE_PATH)
-    if not nara_refresh:
+    if not maf_refresh:
         return
 
     try:
-        payload = decode_token(nara_refresh, REFRESH_TOKEN)
+        payload = decode_token(maf_refresh, REFRESH_TOKEN)
         user = get_user_by_id(db, uuid.UUID(payload["sub"]))
     except (jwt.InvalidTokenError, KeyError, ValueError):
         return

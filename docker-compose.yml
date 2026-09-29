@@ -3,19 +3,23 @@
 # To run the production image exactly as it deploys (API plus built frontend on one origin):
 #   docker compose --profile prod up --build
 
+# Pinned rather than taken from the directory name, so containers and volumes are named for
+# the project even if the folder is called something else.
+name: maf
+
 services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: nara
-      POSTGRES_PASSWORD: nara
-      POSTGRES_DB: nara
+      POSTGRES_USER: maf
+      POSTGRES_PASSWORD: maf
+      POSTGRES_DB: maf
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nara -d nara"]
+      test: ["CMD-SHELL", "pg_isready -U maf -d maf"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -27,7 +31,7 @@ services:
       - "8080:8000"
     environment:
       ENVIRONMENT: production
-      DATABASE_URL: postgresql://nara:nara@postgres:5432/nara
+      DATABASE_URL: postgresql://maf:maf@postgres:5432/maf
       # Replace before deploying anywhere real:
       # python -c "import secrets;print(secrets.token_urlsafe(48))"
       JWT_SECRET: local-production-image-secret-at-least-32-chars

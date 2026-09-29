@@ -17,7 +17,7 @@ def test_signup_opens_a_trialing_business_with_ten_seats(client: TestClient) -> 
 
     trial_ends_at = datetime.fromisoformat(body["business"]["trial_ends_at"])
     assert timedelta(days=13) < trial_ends_at - datetime.now(UTC) <= timedelta(days=14)
-    assert client.cookies.get("nara_refresh")
+    assert client.cookies.get("maf_refresh")
 
 
 def test_signup_rejects_a_duplicate_email(client: TestClient) -> None:
@@ -145,7 +145,7 @@ def test_refresh_without_a_cookie_is_rejected(client: TestClient) -> None:
 def test_an_access_token_cannot_be_used_as_a_refresh_token(client: TestClient) -> None:
     body = signup(client)
     client.cookies.clear()
-    client.cookies.set("nara_refresh", body["access_token"])
+    client.cookies.set("maf_refresh", body["access_token"])
 
     response = client.post("/api/auth/refresh")
 

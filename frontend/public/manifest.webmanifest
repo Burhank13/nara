@@ -1,6 +1,6 @@
 {
-  "name": "Nara",
-  "short_name": "Nara",
+  "name": "MAF",
+  "short_name": "MAF",
   "description": "Shift logging for small shops",
   "start_url": "/",
   "display": "standalone",

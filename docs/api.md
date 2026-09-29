@@ -10,7 +10,7 @@ Sign in returns an **access token** in the JSON body and sets a **refresh token*
 cookie:
 
 ```
-nara_refresh=<jwt>; HttpOnly; Path=/api/auth; SameSite=lax; Max-Age=2592000
+maf_refresh=<jwt>; HttpOnly; Path=/api/auth; SameSite=lax; Max-Age=2592000
 ```
 
 Send the access token as `Authorization: Bearer <token>`. It lasts 60 minutes. When it expires,
