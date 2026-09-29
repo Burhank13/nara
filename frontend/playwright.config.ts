@@ -13,7 +13,9 @@ export default defineConfig({
   // One retry on CI only. These tests drive a real browser against a real API, and a rare
   // timing failure there should not block a merge — locally a flake is worth seeing.
   retries: process.env.CI ? 1 : 0,
-  reporter: [['list']],
+  // The `github` reporter turns a failure into an annotation on the commit, readable
+  // without downloading the trace artifact. `list` still prints the run in the log.
+  reporter: process.env.CI ? [['github'], ['list']] : [['list']],
   use: {
     baseURL: 'http://localhost:5173',
     channel: CHANNEL,
