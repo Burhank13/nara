@@ -158,6 +158,10 @@ See [docs/operations.md](docs/operations.md) for deploying somewhere real.
 ## Status
 
 Working and tested end to end, not yet deployed anywhere. Known gaps: no Stripe integration
-(the account states exist, nothing charges a card), the payroll CSV is a generic
-`Payroll code,Employee,Date,Hours` rather than a Xero or MYOB import template, zones are set by
-coordinates with no map picker, and there are no trial nudge emails or admin console.
+(the account states exist, nothing charges a card), zones are set by coordinates with no map
+picker, and there are no trial nudge emails or admin console.
+
+The payroll export is deliberately a plain `Payroll code,Employee,Date,Hours` CSV rather than a
+Xero or MYOB import template. Those formats want an earnings code per line and differ per
+payroll product, so guessing at one risks silently landing hours in the wrong pay item. A
+bookkeeper can map four obvious columns; they cannot un-break a bad import.
